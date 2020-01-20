@@ -11,15 +11,17 @@ class Env():
         self.p0=p
         self.p=None
         self.observation_space=10
-        self.action_space=6
+        self.action_space=8
 
 
-        self.S=np.random.rand(self.observation_space)
+        self.S=1/2*np.ones(self.observation_space)+0.1*np.random.rand(self.observation_space)
         self.hidden_S=1/100*np.random.rand()
         self.episode=0
         self.n_step=-1
-        self.step_value=0.001
-        self.maxlen=1000
+        self.step_value=0.01
+        self.maxlen=100
+
+        self.reward_counter=0
         
         
 
@@ -63,7 +65,7 @@ class Env():
         # w=np.array([[0.3,0.4,0.9],[0.2,0.01,0.2]])
         # dx=np.sum((x[:2]-x0[:2])**2,axis=-1)
         # dy=np.sum((x[1:]-x0[1:])**2,axis=-1)
-        dx=x[0]-x0[0]
+        dx=2*(x[0]-x0[0])
         dy=x[1]-x0[1]
         input[:,0]+=dx
         input[:,1]+=dy
@@ -72,9 +74,9 @@ class Env():
 
         
     def _rotate(self,input):
-        x=self.S[:3]
-        x0=np.array([0.3,0.4,0.5])
-        theta=np.sum(((x-x0)**2),axis=-1)
+        x=self.S[1:4]
+        x0=np.array([0.4,0.4,0.5])
+        theta=np.sum(((x[:]-x0[:])**2),axis=-1)
         r=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
         return input.dot(r)
 
@@ -123,7 +125,7 @@ class Env():
     def plot_output(self,is_show=False,is_save=True):
         
         fig=plt.figure(figsize=(5, 5))
-        ax=fig.add_subplot()
+        ax=fig.add_subplot(111)
         for i in range(len(self.p)):
             ax.annotate('v'+str(i),xy=tuple(self.p[i]),xytext=tuple(self.p0[i]),arrowprops=dict(arrowstyle="->", color="r"))
         ax.grid()
@@ -149,23 +151,24 @@ class Env():
     # def reward(self):
     #     return 1/(np.sum(np.sum(self.output()**2)))
     def reward(self):
+        self.reward_counter+=1
         l2=1/5*(np.sum(np.sum(self.output()**2)))
-        if np.max(self.S)>1 or np.min(self.S)<0:
-            return -100
-        elif l2<0.01:
-            return 10
-        elif l2<0.05:
-            return 5
-        elif l2<0.1:
-            return 2
-        elif l2<1:
-            return 1
+
+        if self.reward_counter%1==0: 
+            if l2<0.01:
+                return 10
+            elif l2<0.03:
+                return 5
+            elif l2<0.1:
+                return 1
+            else:
+                return 0.1
         else:
             return 0
 
 
     def reset(self):
-        self.S=np.random.rand(10)
+        self.S=1/2*np.ones(self.observation_space)+0.1*np.random.rand(self.observation_space)
         self.hidden_S=np.random.rand()
         self.episode+=1
         self.n_step=-1

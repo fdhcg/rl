@@ -2,7 +2,7 @@ import cv2
 import os
 
 #图片路径
-im_dir = 'episode1005/'
+im_dir = 'data/episode1001/'
 #输出视频路径
 video_dir = 'v_episode1005.avi'
 #帧率
